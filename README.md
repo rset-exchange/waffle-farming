@@ -1,4 +1,4 @@
-# Waffle Farming Contracts
+# 🧇 👨🏻‍🌾 Waffle Farming Contracts
 
 # Setup
 
