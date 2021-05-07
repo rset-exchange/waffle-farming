@@ -3,6 +3,7 @@ const { assert } = require('chai');
 const ERC20 = artifacts.require("ERC20Demo");
 const ERC20_2 = artifacts.require("ERC20Demo2");
 const WaffleFarming = artifacts.require("WaffleFarming");
+const Butter = artifacts.require("Butter");
 
 let snapshotId;
 
@@ -40,10 +41,12 @@ contract('Waffle Farming', function (accounts) {
   beforeEach(async function () {    
     this.erc20 = await ERC20.new({from: accounts[0]});
     this.erc20_2 = await ERC20_2.new({from: accounts[0]});
+    this.butter = await Butter.new({from: accounts[0]});
     let block = await web3.eth.getBlock("latest");
     this.farming = await WaffleFarming.new(
       this.erc20.address,
       this.erc20_2.address,
+      this.butter.address,
       '500000000000000000',
       block.number,
       block.number + 2000,
@@ -53,6 +56,8 @@ contract('Waffle Farming', function (accounts) {
     this.erc20_2.transfer(this.farming.address, '1000000000000000000000', {from: accounts[0]});
     this.erc20.transfer(accounts[1], '10000000000000000000000', {from: accounts[0]});
     this.erc20.transfer(accounts[2], '10000000000000000000000', {from: accounts[0]});
+    this.butter.transfer(accounts[1], '50000000000000000000000', {from: accounts[0]});
+    this.butter.transfer(accounts[2], '50000000000000000000000', {from: accounts[0]});
     await takeSnapshot();
   });
 
@@ -64,8 +69,14 @@ contract('Waffle Farming', function (accounts) {
     it('should deposit and get rewards', async function () {
       await this.erc20.approve(this.farming.address, '1000000000000000000000', {from: accounts[1]});
       await this.erc20.approve(this.farming.address, '1000000000000000000000', {from: accounts[2]});
-
+      await this.butter.approve(this.farming.address, '50000000000000000000000', {from: accounts[1]});
+      await this.butter.approve(this.farming.address, '50000000000000000000000', {from: accounts[2]});
+      assert.equal((await this.butter.totalSupply()).valueOf(), 1000000000000000000000000000, "Incorrect value");
       await this.farming.deposit('1000000000000000000000', {from:accounts[1]});
+      assert.equal((await this.butter.totalSupply()).valueOf(), 999950000000000000000000000, "Incorrect value");
+
+      console.log(await this.butter.totalSupply());
+
       assert.equal((await this.farming.pendingReward(accounts[1])).valueOf(), 0, "Incorrect value");
       await advanceTime();
       assert.equal((await this.farming.pendingReward(accounts[1])).valueOf(), '500000000000000000', "Incorrect value");

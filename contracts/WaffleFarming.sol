@@ -2,6 +2,7 @@ pragma solidity 0.6.4;
 
 import "../node_modules/@openzeppelin/contracts/math/SafeMath.sol";
 import "../node_modules/@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "./IButter.sol";
 
 contract WaffleFarming {
     using SafeMath for uint256;
@@ -25,6 +26,8 @@ contract WaffleFarming {
 
     uint256 public rewardPerBlock;
 
+    IButter public btr;
+
     // Info of each pool.
     PoolInfo public poolInfo;
     // Info of each user that stakes LP tokens.
@@ -45,6 +48,7 @@ contract WaffleFarming {
     constructor(
         IERC20 _lp,
         IERC20 _rewardToken,
+        IButter _btr,
         uint256 _rewardPerBlock,
         uint256 _startBlock,
         uint256 _bonusEndBlock,
@@ -56,6 +60,7 @@ contract WaffleFarming {
         startBlock = _startBlock;
         bonusEndBlock = _bonusEndBlock;
         limitAmount = _limitAmount;
+        btr = _btr;
 
         // staking pool
         poolInfo = PoolInfo({
@@ -114,6 +119,7 @@ contract WaffleFarming {
 
     // Stake tokens to SmartChef
     function deposit(uint256 amount) public {
+        btr.burnFrom(msg.sender, 5000000000000000000000); // 5k
         PoolInfo storage pool = poolInfo;
         UserInfo storage user = userInfo[msg.sender];
 
